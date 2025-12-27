@@ -1,0 +1,16 @@
+# Filename: renode-config.resc
+$bin?=@app/Build/final.elf
+
+# Create Machine & Load config
+mach create
+machine LoadPlatformDescription @platforms/boards/stm32f4_discovery-kit.repl
+
+# Create a terminal window showing the output of UART2
+showAnalyzer sysbus.usart2
+
+macro reset
+"""
+    sysbus LoadELF $bin
+"""
+
+runMacro $reset
