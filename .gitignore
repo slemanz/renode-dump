@@ -1,3 +1,9 @@
 *.vscode*
 *.bin
 *.elf
+
+# robot
+*.html
+*.xml
+logs
+snapshots
