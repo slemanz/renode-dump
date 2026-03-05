@@ -1,6 +1,8 @@
 *.vscode*
 *.bin
 *.elf
+*.map
+*.o
 
 # robot
 *.html
