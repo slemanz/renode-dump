@@ -65,3 +65,68 @@ make
 Requires `arm-none-eabi-gcc` in your PATH.
 
 ---
+
+## Run in Renode
+
+### Interactive (with monitor)
+
+```bash
+cd 01-blinky
+renode blinky.resc
+```
+
+Then in the Renode monitor:
+
+```
+start                                    # begin simulation
+gpioPortA.UserLED State                  # check LED state (True/False)
+pause                                    # stop simulation
+```
+
+You'll see log messages like:
+```
+[INFO] gpioPortA.UserLED: LED state changed to True
+[INFO] gpioPortA.UserLED: LED state changed to False
+```
+
+### Headless (run and exit)
+
+```bash
+renode --disable-xwt -e "include @blinky.resc; start; sleep 3; quit"
+```
+
+---
+
+## Automated Tests
+
+```bash
+renode-test tests/test_blinky.robot --results-dir tests/results
+```
+
+### Test Cases
+
+| Test | What It Verifies |
+|------|-----------------|
+| `Should Create Machine` | Machine boots and firmware loads without errors |
+| `LED Should Be Off Initially` | LED starts in off state before any code runs |
+| `LED Should Change State After Running` | LED toggles at least once after 600ms of simulation |
+| `LED Should Toggle Multiple Times` | LED toggles back and forth across two periods |
+
+---
+
+## Renode Concepts Covered
+
+### Platform Overlay (`.repl`)
+
+The file `stm32f411_blinky.repl` extends the base STM32F4 platform by adding a virtual LED:
+
+```
+UserLED: Miscellaneous.LED @ gpioPortA
+gpioPortA:
+    5 -> UserLED@0
+```
+
+This tells Renode: "create an LED peripheral attached to GPIO port A, and
+connect pin 5's output to the LED's input 0." When firmware toggles PA5, the LED
+state changes.
+
