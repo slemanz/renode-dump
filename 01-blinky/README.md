@@ -130,3 +130,13 @@ This tells Renode: "create an LED peripheral attached to GPIO port A, and
 connect pin 5's output to the LED's input 0." When firmware toggles PA5, the LED
 state changes.
 
+### Simulation Script (`.resc`)
+
+The `blinky.resc` file is the entry point. It creates a machine, loads the
+platform description and firmware, and sets up logging. Key commands:
+
+- `mach create` — creates a virtual machine instance
+- `machine LoadPlatformDescription` — loads hardware definition
+- `sysbus LoadELF` — loads compiled firmware into simulated flash
+- `logLevel -1` — enables verbose logging (level -1 = Noisy)
+
