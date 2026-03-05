@@ -140,3 +140,13 @@ platform description and firmware, and sets up logging. Key commands:
 - `sysbus LoadELF` — loads compiled firmware into simulated flash
 - `logLevel -1` — enables verbose logging (level -1 = Noisy)
 
+### Robot Framework Tests
+
+Tests use Renode's built-in Robot Framework keywords. The pattern is:
+
+1. Create and configure the machine (`Prepare Machine`)
+2. Run the simulation for a specific time (`emulation RunFor`)
+3. Read peripheral state (`Execute Command ... State`)
+4. Assert expected behavior (`Should Not Be Equal`)
+
+---
