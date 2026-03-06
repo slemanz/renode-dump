@@ -1,0 +1,18 @@
+{
+	"folders": [
+        {
+            "name": "uart-printf",
+            "path": "../02-uart-printf"
+        },
+        {
+            "name": "drivers",
+            "path": "../general/drivers"
+        },
+    ],
+    "settings": {
+        "C_Cpp.default.includePath": [
+            "${workspaceFolder:blinky}/Inc",
+            "${workspaceFolder:drivers}/Inc"
+        ],
+    }
+}
