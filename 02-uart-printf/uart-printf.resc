@@ -1,0 +1,26 @@
+## 02-uart-printf - STM32F411 UART Simulation Script
+## Loads firmware with UART output and opens a terminal analyzer for USART2.
+
+# Path to the ELF binary
+$bin?=@Build/flash.elf
+
+# Create the virtual machine
+mach create "STM32F411"
+
+# Load platform descriptions
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+machine LoadPlatformDescription @stm32f411_uart.repl
+
+# Open a terminal window for USART2 (the printf output)
+showAnalyzer sysbus.usart2
+
+# Enable verbose logging for LED
+logLevel -1 gpioPortA.UserLED
+
+# define reset macro
+macro reset
+"""
+    sysbus LoadELF $bin
+"""
+
+runMacro $reset

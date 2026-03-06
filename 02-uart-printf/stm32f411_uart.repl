@@ -1,0 +1,13 @@
+// STM32F411 UART Printf - Platform Overlay
+//
+// Extends the base stm32f4.repl by adding:
+//   - LED on GPIOA pin 5 (Nucleo LD2)
+//
+// Note: USART2 is already defined in the base stm32f4.repl platform,
+// so we don't need to add it here. We just use showAnalyzer in the .resc
+// script to open a terminal window for it.
+
+UserLED: Miscellaneous.LED @ gpioPortA
+
+gpioPortA:
+    5 -> UserLED@0

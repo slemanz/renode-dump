@@ -116,5 +116,5 @@ renode --disable-xwt -e "include @uart-printf.resc; start; sleep 5; quit"
 ## Automated Tests
 
 ```bash
-renode-test tests/test_uart.robot
+renode-test tests/test_uart.robot --results-dir tests/results
 ```
