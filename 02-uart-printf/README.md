@@ -118,3 +118,59 @@ renode --disable-xwt -e "include @uart-printf.resc; start; sleep 5; quit"
 ```bash
 renode-test tests/test_uart.robot --results-dir tests/results
 ```
+
+### Test Cases
+
+| Test | What It Verifies |
+|------|-----------------|
+| `Should Print Boot Message` | UART is configured correctly and "Boot OK" appears |
+| `Should Print Toggle Messages` | Periodic messages arrive at ~1s intervals |
+| `Should Print Sequential Counter` | Counter increments: [1], [2], [3]... |
+| `LED Should Toggle With UART Messages` | LED state changes correlate with printed messages |
+| `Boot Message Should Appear Before Toggle` | Init sequence is correct (boot → toggle) |
+
+---
+
+## Renode Concepts Covered
+
+### Terminal Tester (Robot Framework)
+
+The `Create Terminal Tester` keyword sets up an internal listener on a UART
+peripheral. Combined with `Wait For Line On Uart`, it lets you assert that
+specific strings appear within a timeout:
+
+```robot
+Prepare Machine
+    ...
+    Create Terminal Tester      sysbus.usart2
+
+Should Print Boot Message
+    Prepare Machine
+    Start Emulation
+    Wait For Line On Uart       Boot OK    timeout=5
+```
+
+This is the primary way to test firmware behavior in Renode — your firmware
+talks via UART, and the test framework listens.
+
+### showAnalyzer vs Terminal Tester
+
+- **`showAnalyzer`** (in `.resc`) — Opens a GUI window showing UART output in
+real time. Great for interactive debugging. Does NOT work in headless/test mode.
+- **`Create Terminal Tester`** (in `.robot`) — Programmatic listener used in
+automated tests. Works headless. Cannot be used at the same time as
+`showAnalyzer` on the same UART.
+
+In tests, we only use `Create Terminal Tester`. In interactive sessions, we use
+`showAnalyzer`.
+
+### UART in Renode's STM32F4 Platform
+
+Renode's built-in `stm32f4.repl` already defines USART1, USART2, and USART6 at
+the correct memory-mapped addresses. The UART driver writes to the data
+register, and Renode intercepts it — no physical TX/RX lines needed.
+
+Key addresses (from the STM32F411 reference manual):
+- USART2: `0x40004400`
+- USART1: `0x40011000`
+- USART6: `0x40011400`
