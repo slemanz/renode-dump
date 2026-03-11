@@ -1,8 +1,8 @@
 {
 	"folders": [
         {
-            "name": "uart-printf",
-            "path": "../02-uart-printf"
+            "name": "app",
+            "path": "../03-custom-platform"
         },
         {
             "name": "drivers",
@@ -11,7 +11,7 @@
     ],
     "settings": {
         "C_Cpp.default.includePath": [
-            "${workspaceFolder:uart-printf}/Inc",
+            "${workspaceFolder:app}/Inc",
             "${workspaceFolder:drivers}/Inc"
         ],
     }
