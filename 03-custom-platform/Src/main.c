@@ -45,10 +45,41 @@ static void uart_puts(const char *str)
 /*  GPIO: Status LED (PA5), Error LED (PB3), Button (PA0)                     */
 /* -------------------------------------------------------------------------- */
 
+static void gpio_init(void)
+{
+    /* PA5 — Status LED (output, push-pull) */
+    GPIO_PinConfig_t led_status = {
+        .pGPIOx = GPIOA, .GPIO_PinNumber = GPIO_PIN_NO_5,
+        .GPIO_PinMode = GPIO_MODE_OUT, .GPIO_PinSpeed = GPIO_SPEED_LOW,
+        .GPIO_PinOPType = GPIO_OP_TYPE_PP, .GPIO_PinPuPdControl = GPIO_NO_PUPD,
+        .GPIO_PinAltFunMode = GPIO_PIN_NO_ALTFN
+    };
+    GPIO_Init(&led_status);
+
+    /* PB3 — Error LED (output, push-pull) */
+    GPIO_PinConfig_t led_error = {
+        .pGPIOx = GPIOB, .GPIO_PinNumber = GPIO_PIN_NO_3,
+        .GPIO_PinMode = GPIO_MODE_OUT, .GPIO_PinSpeed = GPIO_SPEED_LOW,
+        .GPIO_PinOPType = GPIO_OP_TYPE_PP, .GPIO_PinPuPdControl = GPIO_NO_PUPD,
+        .GPIO_PinAltFunMode = GPIO_PIN_NO_ALTFN
+    };
+    GPIO_Init(&led_error);
+
+    /* PA0 — User Button (input, pull-up — press = low) */
+    GPIO_PinConfig_t button = {
+        .pGPIOx = GPIOA, .GPIO_PinNumber = GPIO_PIN_NO_0,
+        .GPIO_PinMode = GPIO_MODE_IN, .GPIO_PinSpeed = GPIO_SPEED_LOW,
+        .GPIO_PinOPType = GPIO_OP_TYPE_PP, .GPIO_PinPuPdControl = GPIO_PIN_PU,
+        .GPIO_PinAltFunMode = GPIO_PIN_NO_ALTFN
+    };
+    GPIO_Init(&button);
+}
+
 int main(void)
 {
     systick_init(TICK_HZ);
     uart2_init();
+    gpio_init();
 
     while(1)
     {
