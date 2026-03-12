@@ -75,14 +75,54 @@ static void gpio_init(void)
     GPIO_Init(&button);
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Helpers                                                                   */
+/* -------------------------------------------------------------------------- */
+
+static uint8_t button_is_pressed(void)
+{
+    /* Button model drives pin low when pressed, pull-up keeps it high otherwise */
+    return (GPIO_ReadFromInputPin(GPIOA, GPIO_PIN_NO_0) == 0u);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Main                                                                      */
+/* -------------------------------------------------------------------------- */
+
 int main(void)
 {
     systick_init(TICK_HZ);
     uart2_init();
     gpio_init();
 
+    uart_puts("Platform ready\r\n");
+
+    uint64_t last_blink = ticks_get();
+    uint8_t  error_active = 0;
+
     while(1)
     {
+        /* Blink status LED every 500ms */
+        if ((ticks_get() - last_blink) >= 500u)
+        {
+            GPIO_ToggleOutputPin(GPIOA, GPIO_PIN_NO_5);
+            last_blink = ticks_get();
+        }
 
+        /* Button pressed → turn on error LED and report */
+        if (button_is_pressed() && !error_active)
+        {
+            GPIO_WriteToOutputPin(GPIOB, GPIO_PIN_NO_3, 1);
+            uart_puts("Error ON\r\n");
+            error_active = 1;
+        }
+
+        /* Button released → turn off error LED */
+        if (!button_is_pressed() && error_active)
+        {
+            GPIO_WriteToOutputPin(GPIOB, GPIO_PIN_NO_3, 0);
+            uart_puts("Error OFF\r\n");
+            error_active = 0;
+        }
     }
 }
