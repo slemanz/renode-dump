@@ -1,0 +1,21 @@
+// STM32F411 Custom Platform - Built from scratch
+//
+// This overlay extends the base stm32f4.repl with a realistic board setup:
+//   - Status LED on PA5 (green, active-high)
+//   - Error LED on PB3 (red, active-high)
+//   - User button on PA0 (directly readable)
+
+// --- LEDs ---------------------------------------------------------------
+
+StatusLED: Miscellaneous.LED @ gpioPortA
+gpioPortA:
+    5 -> StatusLED@0
+
+ErrorLED: Miscellaneous.LED @ gpioPortB
+gpioPortB:
+    3 -> ErrorLED@0
+
+// --- Button -------------------------------------------------------------
+
+UserButton: Miscellaneous.Button @ gpioPortA
+    -> gpioPortA@0

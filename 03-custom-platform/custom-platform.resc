@@ -1,0 +1,20 @@
+$bin?=@Build/flash.elf
+
+mach create "STM32F411"
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+machine LoadPlatformDescription @stm32f411_custom.repl
+
+# Open UART terminal
+showAnalyzer sysbus.usart2
+
+
+# Log LED changes
+logLevel -1 gpioPortA.StatusLED
+logLevel -1 gpioPortB.ErrorLED
+
+macro reset
+"""
+    sysbus LoadELF $bin
+"""
+
+runMacro $reset
