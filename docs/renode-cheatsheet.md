@@ -90,3 +90,46 @@ gpioPortA.UserButton Release            # release
 # Read GPIO output register directly
 sysbus ReadDoubleWord 0x40020014       # GPIOA ODR
 ```
+
+
+## UART
+
+```bash
+# Open interactive terminal (GUI only)
+showAnalyzer sysbus.usart2
+
+# In Robot Framework tests (programmatic)
+# Create Terminal Tester    sysbus.usart2
+# Wait For Line On Uart     expected text    timeout=5
+```
+
+## Logging
+
+```bash
+# Log levels: -1 (Noisy) → 0 (Debug) → 1 (Info) → 2 (Warning) → 3 (Error)
+logLevel -1 gpioPortA.UserLED           # see every state change
+logLevel 1 sysbus.usart2               # info only for UART
+logLevel 3                              # errors only globally
+
+# Log to file
+logFile @/tmp/renode.log
+logFile @/tmp/renode.log true           # append mode
+
+# Per-peripheral log
+logLevel -1 sysbus.timer2              # see timer events
+```
+
+## Debugging with GDB
+
+```bash
+# In Renode monitor
+machine StartGdbServer 3333
+
+# In another terminal
+arm-none-eabi-gdb Build/flash.elf
+(gdb) target remote :3333
+(gdb) break main
+(gdb) continue
+(gdb) info registers
+(gdb) x/10x 0x20000000                 # examine SRAM
+```
