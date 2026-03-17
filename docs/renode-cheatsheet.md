@@ -133,3 +133,103 @@ arm-none-eabi-gdb Build/flash.elf
 (gdb) info registers
 (gdb) x/10x 0x20000000                 # examine SRAM
 ```
+
+## Multi-Machine / Networking
+
+```bash
+# Create multiple machines
+mach create "node_A"
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+sysbus LoadELF @node_a.elf
+
+mach create "node_B"
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+sysbus LoadELF @node_b.elf
+
+# Connect UARTs
+emulation CreateUARTHub "uartBus"
+mach set "node_A"
+connector Connect sysbus.usart2 uartBus
+mach set "node_B"
+connector Connect sysbus.usart2 uartBus
+
+# Connect CAN (for MCUs with CAN peripheral)
+emulation CreateCANHub "canBus"
+mach set "node_A"
+connector Connect sysbus.can1 canBus
+mach set "node_B"
+connector Connect sysbus.can1 canBus
+```
+
+## Snapshots (Save / Restore State)
+
+```bash
+# Save current state
+Save @snapshot_name.save
+
+# Load saved state
+Load @snapshot_name.save
+```
+
+
+## Scripting (.resc) Patterns
+
+### Minimal Script
+
+```bash
+$bin?=@Build/flash.elf
+mach create "STM32F411"
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+macro reset
+"""
+    sysbus LoadELF $bin
+"""
+runMacro $reset
+```
+
+### With Overlay and Logging
+
+```bash
+$bin?=@Build/flash.elf
+mach create "STM32F411"
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+machine LoadPlatformDescription @my_board.repl
+showAnalyzer sysbus.usart2
+logLevel -1 gpioPortA.MyLED
+macro reset
+"""
+    sysbus LoadELF $bin
+"""
+runMacro $reset
+```
+
+### Variables in Scripts
+
+```bash
+$bin?=@default_path.elf                 # default value, overridable
+$timeout?="5"                           # string variable
+
+# Override from command line:
+# renode -e '$bin=@other.elf; include @script.resc'
+```
+
+
+## Useful Monitor Tricks
+
+```bash
+# Execute Python in Renode
+python "print('Hello from Python')"
+
+# Get elapsed virtual time
+machine ElapsedVirtualTime
+
+# List available platforms
+list @platforms/cpus/                    # see all CPU platforms
+list @platforms/boards/                  # see all board platforms
+
+# Tab completion
+# Type partial command + Tab in the monitor
+
+# Command history
+# Up/Down arrows in the monitor
+```
