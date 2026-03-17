@@ -1,8 +1,0 @@
-// STM32F411 Blinky - LED on GPIOA Pin 5
-// This file extends the base stm32f4.repl platform
-// by connecting an LED peripheral to GPIO port A, pin 5.
-
-UserLED: Miscellaneous.LED @ gpioPortA
-
-gpioPortA:
-    5 -> UserLED@0
