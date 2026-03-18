@@ -135,3 +135,60 @@ adc1: Analog.STM32_ADC @ sysbus 0x40012000
     referenceVoltage: 3.3
     externalEventFrequency: 1000000
 ```
+
+## Board Components (Overlays)
+
+### LED
+
+```
+MyLED: Miscellaneous.LED @ gpioPortA
+
+gpioPortA:
+    5 -> MyLED@0
+```
+
+The `5 -> MyLED@0` means: pin 5 of gpioPortA drives input 0 of MyLED. When firmware sets pin 5 high, the LED turns on.
+
+**Multiple LEDs on different ports:**
+
+```
+GreenLED: Miscellaneous.LED @ gpioPortA
+gpioPortA:
+    5 -> GreenLED@0
+
+RedLED: Miscellaneous.LED @ gpioPortB
+gpioPortB:
+    3 -> RedLED@0
+
+BlueLED: Miscellaneous.LED @ gpioPortC
+gpioPortC:
+    13 -> BlueLED@0
+```
+
+### Button
+
+```
+UserButton: Miscellaneous.Button @ gpioPortA
+    -> gpioPortA@0
+```
+
+The `-> gpioPortA@0` means: the button drives pin 0 of gpioPortA. Use `Press`
+and `Release` in the monitor or Robot tests.
+
+**Button with inversion (active-low):**
+
+```
+UserButton: Miscellaneous.Button @ gpioPortA
+    invert: true
+    -> gpioPortA@0
+```
+
+### External I2C Device
+
+```
+tempSensor: I2C.BMP180 @ i2c1 0x77
+```
+
+This attaches a simulated BMP180 sensor at I2C address 0x77 to the i2c1 bus.
+Renode has built-in models for some sensors. For custom ones, you write C# or
+Python peripherals.
