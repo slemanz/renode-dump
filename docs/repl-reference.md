@@ -240,4 +240,92 @@ i2c1: I2C.STM32F4_I2C @ sysbus 0x40005400
     ErrorInterrupt -> nvic@32
 ```
 
-The names (`EventInterrupt`, `ErrorInterrupt`) are defined in the C# peripheral model.
+The names (`EventInterrupt`, `ErrorInterrupt`) are defined in the C# peripheral
+model.
+
+## Properties Reference
+
+Properties are indented under the peripheral declaration:
+
+```
+peripheral: Type @ parent offset
+    property1: value1
+    property2: value2
+```
+
+Common properties:
+
+| Property | Type | Used In | Example |
+|----------|------|---------|---------|
+| `size` | hex/int | Memory | `size: 0x20000` |
+| `frequency` | int | Timer, CPU | `frequency: 16000000` |
+| `cpuType` | string | CPU | `cpuType: "cortex-m4f"` |
+| `IRQ` | connection | UART, SPI | `IRQ -> nvic@38` |
+| `invert` | bool | Button | `invert: true` |
+| `numberOfAFs` | int | GPIO | `numberOfAFs: 16` |
+| `referenceVoltage` | float | ADC | `referenceVoltage: 3.3` |
+
+## Complete Board Example
+
+A full board overlay for an STM32F411 Nucleo-like setup:
+
+```
+// file: my_nucleo_board.repl
+//
+// Base: platforms/cpus/stm32f4.repl (loaded separately)
+// Board: 1 user LED (PA5), 1 user button (PC13), UART2 terminal
+
+// User LED (LD2)
+UserLED: Miscellaneous.LED @ gpioPortA
+gpioPortA:
+    5 -> UserLED@0
+
+// User button (directly readable — active-low on real board)
+UserButton: Miscellaneous.Button @ gpioPortC
+    -> gpioPortC@13
+```
+
+Load it:
+
+```
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+machine LoadPlatformDescription @my_nucleo_board.repl
+```
+
+---
+
+## Finding Available Peripheral Types
+
+Renode's built-in peripheral models are organized by namespace:
+
+| Namespace | Contents |
+|-----------|----------|
+| `CPU.CortexM` | ARM Cortex-M cores |
+| `Memory.MappedMemory` | RAM, Flash regions |
+| `GPIOPort.STM32_GPIOPort` | STM32 GPIO ports |
+| `UART.STM32_UART` | STM32 UART/USART |
+| `Timers.STM32_Timer` | STM32 general-purpose timers |
+| `SPI.STM32SPI` | STM32 SPI |
+| `I2C.STM32F4_I2C` | STM32F4 I2C |
+| `Analog.STM32_ADC` | STM32 ADC |
+| `Miscellaneous.LED` | Generic LED model |
+| `Miscellaneous.Button` | Generic button model |
+| `CAN.STMCAN` | STM32 bxCAN controller |
+
+To see all available types, check [Renode's source code](https://github.com/renode/renode-infrastructure/tree/master/src/Emulator/Peripherals/Peripherals) or use tab-completion in the monitor.
+
+## Troubleshooting `.repl` Files
+
+**"Peripheral X not found"**  
+Check the namespace and class name. Use exact spelling from Renode's source.
+
+**"Property Y not recognized"**  
+Properties are specific to each C# model. Check the model's source code for
+available properties.
+
+**Overlay doesn't apply**  
+Make sure you load the base platform first, then the overlay. Order matters.
+
+**IRQ doesn't fire**  
+Verify the IRQ number matches the STM32 reference manual. Also check that the
+NVIC is properly defined in the base platform.
