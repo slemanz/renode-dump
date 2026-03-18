@@ -192,3 +192,52 @@ tempSensor: I2C.BMP180 @ i2c1 0x77
 This attaches a simulated BMP180 sensor at I2C address 0x77 to the i2c1 bus.
 Renode has built-in models for some sensors. For custom ones, you write C# or
 Python peripherals.
+
+## IRQ Connections
+
+IRQ connections use the `->` syntax. The format is:
+
+```
+sourcePeripheral -> destinationPeripheral@irqNumber
+```
+
+**Examples:**
+
+```
+// Timer 2 interrupt → NVIC IRQ 28
+timer2:
+    -> nvic@28
+
+// UART2 interrupt → NVIC IRQ 38
+usart2:
+    IRQ -> nvic@38
+
+// GPIO pin → EXTI line
+gpioPortA:
+    [0-15] -> exti@[0-15]
+
+// EXTI lines → NVIC
+exti:
+    [0-4] -> nvic@[6-10]
+```
+
+### Multi-output Connections
+
+```
+// GPIO pin drives both an LED and an EXTI line
+gpioPortA:
+    5 -> MyLED@0
+    [0-15] -> exti@[0-15]
+```
+
+## Named IRQ Connections
+
+Some peripherals have named IRQ outputs instead of numbered ones:
+
+```
+i2c1: I2C.STM32F4_I2C @ sysbus 0x40005400
+    EventInterrupt -> nvic@31
+    ErrorInterrupt -> nvic@32
+```
+
+The names (`EventInterrupt`, `ErrorInterrupt`) are defined in the C# peripheral model.
