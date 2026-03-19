@@ -72,3 +72,26 @@ Button Release Should Deactivate Error LED
     ${state}=                   Execute Command    ${ERROR_LED} State
     Should Contain              ${state}    False
     ...                         msg=Error LED should be OFF after button release
+
+Both LEDs Should Operate Independently
+    [Documentation]             Status LED should keep blinking even while error LED is active.
+    Prepare Machine
+
+    # Boot the system
+    Execute Command             emulation RunFor "0.5"
+
+    # Activate error LED
+    Execute Command             ${BUTTON} Press
+    Execute Command             emulation RunFor "0.1"
+
+    # Verify error LED is on
+    ${error_state}=             Execute Command    ${ERROR_LED} State
+    Should Contain              ${error_state}    True
+    ...                         msg=Error LED should be ON after button press
+
+    # Check status LED still toggles
+    ${before}=                  Execute Command    ${STATUS_LED} State
+    Execute Command             emulation RunFor "0.6"
+    ${after}=                   Execute Command    ${STATUS_LED} State
+    Should Not Be Equal         ${before}    ${after}
+    ...                         msg=Status LED should keep blinking while error LED is active
