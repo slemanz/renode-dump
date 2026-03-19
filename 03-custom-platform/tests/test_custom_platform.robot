@@ -32,3 +32,10 @@ Status LED Should Blink
     ${after}=                   Execute Command    ${STATUS_LED} State
     Should Not Be Equal         ${initial}    ${after}
     ...                         msg=Status LED should toggle after 600ms
+
+Error LED Should Be Off At Boot
+    [Documentation]             Error LED (PB3) must be off when no button is pressed.
+    Prepare Machine
+    Execute Command             emulation RunFor "0.1"
+    ${state}=                   Execute Command    ${ERROR_LED} State
+    Should Contain              ${state}    False
