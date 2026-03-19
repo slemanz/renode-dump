@@ -90,3 +90,7 @@ q
 ```
 
 ## Automated Tests
+
+```bash
+renode-test tests/test_custom_platform.robot --results-dir tests/results
+``
