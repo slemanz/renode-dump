@@ -39,3 +39,36 @@ Error LED Should Be Off At Boot
     Execute Command             emulation RunFor "0.1"
     ${state}=                   Execute Command    ${ERROR_LED} State
     Should Contain              ${state}    False
+
+Button Press Should Activate Error LED
+    [Documentation]             Pressing the button should turn on the error LED
+    ...                         and print "Error ON" on UART.
+    Prepare Machine
+    Start Emulation
+
+    # Wait for boot
+    Wait For Line On Uart       Platform ready    timeout=3
+
+    # Press button
+    Execute Command             ${BUTTON} Press
+    Wait For Line On Uart       Error ON          timeout=3
+    ${state}=                   Execute Command    ${ERROR_LED} State
+    Should Contain              ${state}    True
+    ...                         msg=Error LED should be ON after button press
+
+Button Release Should Deactivate Error LED
+    [Documentation]             Releasing the button should turn off the error LED
+    ...                         and print "Error OFF" on UART.
+    Prepare Machine
+    Start Emulation
+
+    Wait For Line On Uart       Platform ready    timeout=3
+
+    # Press and release
+    Execute Command             ${BUTTON} Press
+    Wait For Line On Uart       Error ON          timeout=3
+    Execute Command             ${BUTTON} Release
+    Wait For Line On Uart       Error OFF         timeout=3
+    ${state}=                   Execute Command    ${ERROR_LED} State
+    Should Contain              ${state}    False
+    ...                         msg=Error LED should be OFF after button release
