@@ -93,4 +93,52 @@ q
 
 ```bash
 renode-test tests/test_custom_platform.robot --results-dir tests/results
-``
+```
+
+> **Tip:** Use `--results-dir tests/results` to keep HTML/XML reports out of
+your workspace. See the [Robot Framework Guide](../docs/robot-framework-guide.md) for more on this.
+
+### Test Cases
+
+| Test | What It Verifies |
+|------|-----------------|
+| `Should Boot And Print Ready` | UART works, firmware initializes |
+| `Status LED Should Blink` | PA5 toggles within 600ms |
+| `Error LED Should Be Off At Boot` | PB3 starts off (no false alarms) |
+| `Button Press Should Activate Error LED` | Press → LED on + UART message |
+| `Button Release Should Deactivate Error LED` | Release → LED off + UART message |
+| `Both LEDs Should Operate Independently` | Status LED keeps blinking during error |
+
+## Renode Concepts Covered
+
+### Writing `.repl` overlays
+
+A `.repl` file is loaded on top of the base platform. You can stack multiple:
+
+```
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl     # base MCU
+machine LoadPlatformDescription @stm32f411_custom.repl            # our board
+```
+
+The base file defines CPU, memory, UART, GPIO ports, etc. Our overlay just adds the external components (LEDs, buttons, sensors) and wires them.
+
+### Button injection in tests
+
+The `Miscellaneous.Button` model has `Press` and `Release` commands. In Robot Framework:
+
+```robot
+Execute Command    sysbus.gpioPortA.UserButton Press
+# ... do something ...
+Execute Command    sysbus.gpioPortA.UserButton Release
+```
+
+This is how you simulate physical inputs without hardware. The same pattern extends to any Renode peripheral that accepts commands.
+
+### Multiple GPIO ports
+
+Each GPIO port is a separate peripheral in Renode. You can attach LEDs, buttons, or other models to any port/pin combination. The wiring syntax is always:
+
+```
+port:
+    pinNumber -> peripheral@inputIndex
+```
