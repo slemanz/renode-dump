@@ -18,4 +18,5 @@ gpioPortB:
 // --- Button -------------------------------------------------------------
 
 UserButton: Miscellaneous.Button @ gpioPortA
+    invert: true
     -> gpioPortA@0
