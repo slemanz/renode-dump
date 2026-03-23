@@ -1,0 +1,18 @@
+{
+	"folders": [
+        {
+            "name": "app",
+            "path": "../04-timer-interrupt"
+        },
+        {
+            "name": "drivers",
+            "path": "../general/drivers"
+        },
+    ],
+    "settings": {
+        "C_Cpp.default.includePath": [
+            "${workspaceFolder:app}/Inc",
+            "${workspaceFolder:drivers}/Inc"
+        ],
+    }
+}
