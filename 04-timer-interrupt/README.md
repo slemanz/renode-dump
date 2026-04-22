@@ -10,3 +10,39 @@ the simulator, which is essential for validating real-time firmware behavior.
 > **Target MCU:** STM32F411 (Cortex-M4)
 
 ---
+
+## How It Works
+
+### Timer Configuration
+
+TIM2 is configured as a simple upcounting timer with an update interrupt:
+
+```
+Clock source:  16 MHz (HSI)
+Prescaler:     15999   → timer tick = 16MHz / 16000 = 1 kHz
+Period (ARR):  499     → overflow every 500 ticks  = 500ms
+```
+
+When the counter reaches 499 and rolls over, the hardware sets the UIF (Update Interrupt Flag) in `TIM2->SR` and triggers `TIM2_IRQHandler`.
+
+
+### ISR Flow
+
+```
+TIM2 overflow (every 500ms)
+  └─ TIM2_IRQHandler
+       ├─ Clear UIF flag in TIM2->SR
+       ├─ Increment global tick counter
+       ├─ Set flag for main loop
+       └─ Toggle PA5 (LED)
+
+Main loop (background)
+  └─ if flag is set
+       ├─ Clear flag
+       └─ printf("[TIM2] tick N")
+```
+
+The LED toggle happens inside the ISR for precise timing. The printf happens in
+the main loop because UART writes are too slow for an ISR.
+
+## Build & Run
