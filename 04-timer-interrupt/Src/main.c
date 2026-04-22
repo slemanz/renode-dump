@@ -86,11 +86,31 @@ int __io_putchar(int ch)
 
 
 /* -------------------------------------------------------------------------- */
+/*  LED setup (PA5)                                                            */
+/* -------------------------------------------------------------------------- */
+
+static void led_init(void)
+{
+    GPIO_PinConfig_t cfg = {
+        .pGPIOx = GPIOA, .GPIO_PinNumber = GPIO_PIN_NO_5,
+        .GPIO_PinMode = GPIO_MODE_OUT, .GPIO_PinSpeed = GPIO_SPEED_LOW,
+        .GPIO_PinOPType = GPIO_OP_TYPE_PP, .GPIO_PinPuPdControl = GPIO_NO_PUPD,
+        .GPIO_PinAltFunMode = GPIO_PIN_NO_ALTFN
+    };
+    GPIO_Init(&cfg);
+}
+
+
+
+/* -------------------------------------------------------------------------- */
 /*  Main                                                                       */
 /* -------------------------------------------------------------------------- */
 
 int main(void)
 {
+    systick_init(TICK_HZ);
+    uart2_init();
+    led_init();
 
     while(1)
     {
