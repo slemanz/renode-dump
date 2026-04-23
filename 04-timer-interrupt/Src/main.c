@@ -100,6 +100,33 @@ static void led_init(void)
     GPIO_Init(&cfg);
 }
 
+/* -------------------------------------------------------------------------- */
+/*  TIM2 setup — 500ms interrupt period                                        */
+/*                                                                             */
+/*  Clock = 16 MHz (HSI)                                                       */
+/*  Prescaler = 15999 → timer clock = 16MHz / 16000 = 1 kHz                   */
+/*  Period (ARR) = 499 → overflow every 500 counts = 500ms                     */
+/* -------------------------------------------------------------------------- */
+
+static TIM_Config_t g_tim2_cfg;
+
+static void tim2_init(void)
+{
+    g_tim2_cfg.pTIMx     = TIM2;
+    g_tim2_cfg.prescaler = 15999u;  /* 16MHz / 16000 = 1kHz tick */
+    g_tim2_cfg.period    = 499u;    /* 500 ticks = 500ms         */
+
+    TIM_PWM_Init(&g_tim2_cfg);
+
+    /* Enable update interrupt (UIE bit in DIER register) */
+    TIM2->DIER |= (1u << TIM_DIER_UIE);
+
+    /* Enable TIM2 IRQ in NVIC */
+    interrupt_Config(IRQ_NO_TIM2, ENABLE);
+
+    /* Start the timer */
+    TIM_Start(TIM2);
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -111,9 +138,16 @@ int main(void)
     systick_init(TICK_HZ);
     uart2_init();
     led_init();
+    tim2_init();
 
-    while(1)
+    printf("TIM2 started\r\n");
+
+    while (1)
     {
-        
+        if (g_tim2_flag)
+        {
+            g_tim2_flag = 0;
+            printf("[TIM2] tick %lu\r\n", (unsigned long)g_tim2_ticks);
+        }
     }
 }
