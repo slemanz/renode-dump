@@ -1,0 +1,18 @@
+## 04-timer-interrupt - STM32F411 TIM2 Interrupt Simulation
+## TIM2 generates a 500ms periodic interrupt that toggles an LED.
+
+$bin?=@Build/flash.elf
+
+mach create "STM32F411"
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+machine LoadPlatformDescription @stm32f411_timer.repl
+
+showAnalyzer sysbus.usart2
+logLevel -1 gpioPortA.UserLED
+
+macro reset
+"""
+    sysbus LoadELF $bin
+"""
+
+runMacro $reset
