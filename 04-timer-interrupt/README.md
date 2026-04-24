@@ -46,3 +46,23 @@ The LED toggle happens inside the ISR for precise timing. The printf happens in
 the main loop because UART writes are too slow for an ISR.
 
 ## Build & Run
+
+
+```bash
+make
+renode timer-interrupt.resc
+# Then: start
+```
+
+Expected UART output:
+```
+TIM2 started
+[TIM2] tick 1
+[TIM2] tick 2
+[TIM2] tick 3
+...
+```
+
+---
+
+## Automated Tests
