@@ -1,0 +1,8 @@
+// STM32F411 Timer Interrupt - Platform Overlay
+//
+// LED on PA5, toggled by TIM2 ISR.
+
+UserLED: Miscellaneous.LED @ gpioPortA
+
+gpioPortA:
+    5 -> UserLED@0
