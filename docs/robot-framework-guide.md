@@ -136,3 +136,54 @@ Execute Command             emulation RunFor "1.0"
 # Pause
 Execute Command             pause
 ```
+
+### UART Testing
+
+```robot
+# Create a listener on a UART peripheral (MUST be before Start Emulation)
+Create Terminal Tester      sysbus.usart2
+
+# Wait for a specific string on UART
+Wait For Line On Uart       expected text    timeout=5
+
+# Wait for text (partial match, doesn't need to be a full line)
+Wait For Prompt On Uart     partial text     timeout=5
+
+# Wait for a specific number of lines
+Wait For Line On Uart       first line       timeout=5
+Wait For Line On Uart       second line      timeout=5
+
+# Send characters TO the UART (simulating terminal input)
+Write Line To Uart          command text
+Write Char On Uart          A
+```
+
+### GPIO / LED / Button
+
+```robot
+# Read LED state
+${state}=                   Execute Command    sysbus.gpioPortA.MyLED State
+Should Contain              ${state}    True
+Should Contain              ${state}    False
+
+# Press/release button
+Execute Command             sysbus.gpioPortA.MyButton Press
+Execute Command             sysbus.gpioPortA.MyButton Release
+
+# Read GPIO register directly
+${odr}=                     Execute Command    sysbus ReadDoubleWord 0x40020014
+```
+
+### Assertions
+
+```robot
+# String comparisons
+Should Contain              ${state}    True
+Should Not Contain          ${state}    Error
+Should Be Equal             ${a}    ${b}
+Should Not Be Equal         ${a}    ${b}
+
+# With custom error messages
+Should Contain              ${state}    True
+...                         msg=LED should be ON after button press
+```
