@@ -81,4 +81,49 @@ renode-test tests/test_timer.robot --results-dir tests/results
 | `LED Should Toggle On Each Tick` | PA5 changes state in the ISR |
 | `Boot Message Should Precede Timer Ticks` | Init sequence is correct |
 
----
+## Renode Concepts Covered
+
+### Hardware Timers in Renode
+
+Renode simulates the STM32 general-purpose timers (TIM2–TIM5). The timer
+registers (PSC, ARR, DIER, SR, CNT) work as expected, you write to them, and
+Renode schedules interrupts based on the virtual clock.
+
+Key point: Renode's timer accuracy depends on the **virtual time** model. When
+you call `emulation RunFor "1.0"`, the simulator advances 1 virtual second, and
+all timers tick accordingly.
+
+### NVIC Interrupts
+
+The interrupt path works the same as on real hardware:
+
+1. Peripheral sets an interrupt flag (`TIM2->SR |= UIF`)
+2. If the interrupt is enabled in the peripheral (`TIM2->DIER |= UIE`)
+3. And enabled in the NVIC (`NVIC_ISER0 |= (1 << 28)`)
+4. The CPU vectors to the ISR (`TIM2_IRQHandler`)
+
+Renode handles the full NVIC priority/preemption model, so nested interrupts
+work too.
+
+### Why This Matters for ECU Simulation
+
+Real ECU firmware is interrupt-driven. Sensor sampling, CAN message processing,
+and actuator control all happen in ISRs or in tasks triggered by ISR flags. If
+you can't validate interrupts in simulation, you can't simulate an ECU. This
+example proves that Renode handles the full path: timer → NVIC → ISR →
+GPIO/UART.
+
+## Troubleshooting
+
+**No tick messages appear**  
+Check that `TIM2_PCLK_EN()` is called (timer clock must be enabled). Also verify
+the NVIC enable: `interrupt_Config(28, ENABLE)`.
+
+**Ticks appear but timing seems wrong**  
+Renode uses virtual time, not wall-clock time. `emulation RunFor "1.0"` is
+exactly 1 virtual second regardless of host speed. If your PSC/ARR math is
+correct for 16MHz, the timing will be accurate.
+
+**LED doesn't toggle**  
+Make sure the UIF flag is cleared in the ISR (`TIM2->SR &= ~(1 << 0)`). If you
+don't clear it, the ISR fires continuously and starves the main loop.
