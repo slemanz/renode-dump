@@ -187,3 +187,110 @@ Should Not Be Equal         ${a}    ${b}
 Should Contain              ${state}    True
 ...                         msg=LED should be ON after button press
 ```
+
+---
+
+## Common Test Patterns
+
+### Pattern 1: Boot Verification
+
+Simplest test — does the firmware start without crashing?
+
+```robot
+Should Boot Successfully
+    Prepare Machine
+    Start Emulation
+    Wait For Line On Uart       Boot OK    timeout=5
+```
+
+### Pattern 2: Periodic Behavior
+
+Verify something happens at regular intervals:
+
+```robot
+Should Print Periodic Messages
+    Prepare Machine
+    Start Emulation
+    Wait For Line On Uart       [1] tick    timeout=3
+    Wait For Line On Uart       [2] tick    timeout=3
+    Wait For Line On Uart       [3] tick    timeout=3
+```
+
+### Pattern 3: Input → Output
+
+Inject an input and verify the output:
+
+```robot
+Button Should Activate Error LED
+    Prepare Machine
+    Start Emulation
+    Wait For Line On Uart       Ready    timeout=3
+
+    Execute Command             sysbus.gpioPortA.Button Press
+    Wait For Line On Uart       Error ON    timeout=3
+    ${state}=                   Execute Command    sysbus.gpioPortB.ErrorLED State
+    Should Contain              ${state}    True
+```
+
+### Pattern 4: State Transitions
+
+Verify state changes over time:
+
+```robot
+LED Should Toggle
+    Prepare Machine
+    ${initial}=                 Execute Command    sysbus.gpioPortA.LED State
+
+    Execute Command             emulation RunFor "0.6"
+    ${after}=                   Execute Command    sysbus.gpioPortA.LED State
+    Should Not Be Equal         ${initial}    ${after}
+```
+
+### Pattern 5: Multi-Machine
+
+Test communication between two nodes:
+
+```robot
+*** Keywords ***
+Prepare Two Machines
+    Execute Command             mach create "sender"
+    Execute Command             machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+    Execute Command             sysbus LoadELF @${CURDIR}/../sender/Build/flash.elf
+
+    Execute Command             mach create "receiver"
+    Execute Command             machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+    Execute Command             sysbus LoadELF @${CURDIR}/../receiver/Build/flash.elf
+
+    # Connect UARTs
+    Execute Command             emulation CreateUARTHub "uartBus"
+    Execute Command             mach set "sender"
+    Execute Command             connector Connect sysbus.usart2 uartBus
+    Execute Command             mach set "receiver"
+    Execute Command             connector Connect sysbus.usart2 uartBus
+
+    # Create tester on receiver's debug UART
+    Execute Command             mach set "receiver"
+    Create Terminal Tester      sysbus.usart1
+
+*** Test Cases ***
+Receiver Should Get Sender Message
+    Prepare Two Machines
+    Start Emulation
+    Wait For Line On Uart       received: hello    timeout=5
+```
+
+### Pattern 6: ADC Injection
+
+Force an ADC reading and verify firmware reaction:
+
+```robot
+Should Detect Overvoltage
+    Prepare Machine
+    Start Emulation
+    Wait For Line On Uart       Ready    timeout=3
+
+    # Inject high ADC value (12-bit: 4095 = max)
+    Execute Command             sysbus.adc1 FeedSample 0x0 3800 0
+    Execute Command             emulation RunFor "0.5"
+    Wait For Line On Uart       OVERVOLTAGE    timeout=3
+```
