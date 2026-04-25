@@ -66,3 +66,19 @@ TIM2 started
 ---
 
 ## Automated Tests
+
+```bash
+renode-test tests/test_timer.robot --results-dir tests/results
+```
+
+### Test Cases
+
+| Test | What It Verifies |
+|------|-----------------|
+| `Should Print TIM2 Started` | Timer initializes without crashing |
+| `Should Print First Tick After 500ms` | ISR fires and sets flag for main loop |
+| `Should Print Sequential Ticks` | ISR fires repeatedly (tick 1, 2, 3) |
+| `LED Should Toggle On Each Tick` | PA5 changes state in the ISR |
+| `Boot Message Should Precede Timer Ticks` | Init sequence is correct |
+
+---
