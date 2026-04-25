@@ -81,3 +81,58 @@ My First Test
     Start Emulation
     Wait For Line On Uart       Hello World    timeout=5
 ```
+
+### Key Sections
+
+| Section | Purpose |
+|---------|---------|
+| `*** Settings ***` | Suite-level configuration (setup, teardown, imports) |
+| `*** Variables ***` | Reusable values (peripheral paths, timeouts) |
+| `*** Keywords ***` | Custom keywords (your reusable test steps) |
+| `*** Test Cases ***` | The actual tests |
+
+---
+
+## Essential Settings
+
+Always include these three lines in every test file:
+
+```robot
+Suite Setup                     Setup
+Suite Teardown                  Teardown
+Test Setup                      Reset Emulation
+Resource                        ${RENODEKEYWORDS}
+```
+
+- `Setup` / `Teardown` — Renode-provided keywords that start/stop the emulation environment
+- `Reset Emulation` — Clears all machines between test cases (clean state)
+- `${RENODEKEYWORDS}` — Path to Renode's Robot keyword library (auto-set by `renode-test`)
+
+
+## Renode Keywords Reference
+
+### Machine Setup
+
+```robot
+# Execute any Renode monitor command
+Execute Command             mach create "name"
+Execute Command             machine LoadPlatformDescription @file.repl
+Execute Command             sysbus LoadELF @firmware.elf
+
+# Execute and capture output
+${result}=                  Execute Command    peripherals
+${value}=                   Execute Command    sysbus ReadDoubleWord 0x40020014
+```
+
+### Execution Control
+
+```robot
+# Start the simulation (non-blocking)
+Start Emulation
+
+# Run for a specific virtual time (blocking)
+Execute Command             emulation RunFor "1.0"
+
+# Pause
+Execute Command             pause
+```
