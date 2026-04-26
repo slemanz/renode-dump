@@ -367,3 +367,38 @@ Renode can save machine state when a test fails. Failed snapshots go to the `sna
 ```bash
 renode -e "Load @snapshots/test_name.fail0.save"
 ```
+
+---
+
+## Quick Reference Card
+
+```robot
+# Setup
+Suite Setup                     Setup
+Suite Teardown                  Teardown
+Test Setup                      Reset Emulation
+Resource                        ${RENODEKEYWORDS}
+
+# Machine
+Execute Command                 mach create "name"
+Execute Command                 machine LoadPlatformDescription @file.repl
+Execute Command                 sysbus LoadELF @file.elf
+
+# Execution
+Start Emulation
+Execute Command                 emulation RunFor "1.0"
+
+# UART
+Create Terminal Tester          sysbus.usart2
+Wait For Line On Uart           text    timeout=5
+Write Line To Uart              text
+
+# GPIO
+${state}=    Execute Command    peripheral.LED State
+Execute Command                 peripheral.Button Press
+Execute Command                 peripheral.Button Release
+
+# Assertions
+Should Contain                  ${var}    expected
+Should Not Be Equal             ${a}    ${b}
+```
