@@ -294,3 +294,76 @@ Should Detect Overvoltage
     Execute Command             emulation RunFor "0.5"
     Wait For Line On Uart       OVERVOLTAGE    timeout=3
 ```
+
+---
+
+## Variables and Reusability
+
+### Project-Level Variables
+
+```robot
+*** Variables ***
+${LED}                          sysbus.gpioPortA.UserLED
+${BUTTON}                       sysbus.gpioPortA.UserButton
+${UART}                         sysbus.usart2
+${BOOT_TIMEOUT}                 5
+```
+
+### Shared Keywords Across Projects
+
+Create a `common.resource` file:
+
+```robot
+# tests/common.resource
+*** Keywords ***
+Prepare STM32F411
+    [Arguments]    ${repl_path}    ${elf_path}
+    Execute Command             mach create "STM32F411"
+    Execute Command             machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+    Execute Command             machine LoadPlatformDescription @${repl_path}
+    Execute Command             sysbus LoadELF @${elf_path}
+```
+
+Use it in test files:
+
+```robot
+*** Settings ***
+Resource                        ${CURDIR}/common.resource
+
+*** Test Cases ***
+My Test
+    Prepare STM32F411    ${CURDIR}/../my_board.repl    ${CURDIR}/../Build/flash.elf
+    Create Terminal Tester      sysbus.usart2
+    Start Emulation
+    Wait For Line On Uart       Hello    timeout=5
+```
+
+---
+
+## Debugging Failed Tests
+
+### Read the Output
+
+When a test fails, `renode-test` generates:
+
+- `log.html` — Detailed execution log (every keyword, every result)
+- `report.html` — Summary with pass/fail counts
+- `output.xml` — Machine-readable results (for CI)
+
+### Common Failures
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| `Wait For Line On Uart` timeout | UART not configured, or firmware not printing | Check UART init, increase timeout |
+| LED state never changes | Timer/SysTick not working in Renode | Verify clock setup, check `emulation RunFor` duration |
+| `Keyword not found: Create Terminal Tester` | Missing `Resource ${RENODEKEYWORDS}` | Add the Resource line in Settings |
+| Test passes alone but fails in suite | State leaking between tests | Add `Test Setup: Reset Emulation` |
+| `Cannot create terminal tester` | `showAnalyzer` on same UART | Remove `showAnalyzer` from .resc when running tests |
+
+### Snapshots on Failure
+
+Renode can save machine state when a test fails. Failed snapshots go to the `snapshots/` directory alongside logs. You can load them later:
+
+```bash
+renode -e "Load @snapshots/test_name.fail0.save"
+```
