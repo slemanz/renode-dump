@@ -124,8 +124,54 @@ static void adc1_init(void)
 
 int main(void)
 {
+    systick_init(TICK_HZ);
+    uart2_init();
+    gpio_init();
+    adc1_init();
+
+    printf("ADC ready\r\n");
+
+    uint64_t last_sample = ticks_get();
+    uint64_t last_blink  = ticks_get();
 
     while (1)
     {
+        /* Heartbeat blink */
+        if ((ticks_get() - last_blink) >= 500u)
+        {
+            GPIO_ToggleOutputPin(GPIOA, GPIO_PIN_NO_5);
+            last_blink = ticks_get();
+        }
+
+        /* Sample ADC every 250ms */
+        if ((ticks_get() - last_sample) >= 250u)
+        {
+            uint16_t raw = 0;
+            ADC_Error_e err = ADC_ReadChannel(ADC1, ADC_CHANNEL_0, &raw);
+
+            if (err == ADC_OK)
+            {
+                printf("[ADC] ch0=%u\r\n", (unsigned)raw);
+
+                /* Threshold check with hysteresis */
+                if (g_sensor_state == SENSOR_OK && raw >= ADC_THRESHOLD_WARNING)
+                {
+                    g_sensor_state = SENSOR_WARNING;
+                    GPIO_WriteToOutputPin(GPIOB, GPIO_PIN_NO_3, 1);
+                    printf("[WARN] overvoltage\r\n");
+                }
+                else if (g_sensor_state == SENSOR_WARNING && raw < ADC_THRESHOLD_CLEAR)
+                {
+                    g_sensor_state = SENSOR_OK;
+                    GPIO_WriteToOutputPin(GPIOB, GPIO_PIN_NO_3, 0);
+                    printf("[WARN] cleared\r\n");
+                }
+            }
+            else
+            {
+                printf("[ADC] error=%u\r\n", (unsigned)err);
+            }
+
+            last_sample = ticks_get();
     }
 }
