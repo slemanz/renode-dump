@@ -173,5 +173,6 @@ int main(void)
             }
 
             last_sample = ticks_get();
+        }
     }
 }
