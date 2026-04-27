@@ -68,6 +68,43 @@ int __io_putchar(int ch)
 }
 
 /* -------------------------------------------------------------------------- */
+/*  GPIO: LEDs                                                                 */
+/* -------------------------------------------------------------------------- */
+
+static void gpio_init(void)
+{
+    /* PA5 — Status LED */
+    GPIO_PinConfig_t led_status = {
+        .pGPIOx = GPIOA, .GPIO_PinNumber = GPIO_PIN_NO_5,
+        .GPIO_PinMode = GPIO_MODE_OUT, .GPIO_PinSpeed = GPIO_SPEED_LOW,
+        .GPIO_PinOPType = GPIO_OP_TYPE_PP, .GPIO_PinPuPdControl = GPIO_NO_PUPD,
+        .GPIO_PinAltFunMode = GPIO_PIN_NO_ALTFN
+    };
+    GPIO_Init(&led_status);
+
+    /* PB3 — Warning LED */
+    GPIO_PinConfig_t led_warn = {
+        .pGPIOx = GPIOB, .GPIO_PinNumber = GPIO_PIN_NO_3,
+        .GPIO_PinMode = GPIO_MODE_OUT, .GPIO_PinSpeed = GPIO_SPEED_LOW,
+        .GPIO_PinOPType = GPIO_OP_TYPE_PP, .GPIO_PinPuPdControl = GPIO_NO_PUPD,
+        .GPIO_PinAltFunMode = GPIO_PIN_NO_ALTFN
+    };
+    GPIO_Init(&led_warn);
+
+    /* PA0 — ADC input (analog mode) */
+    GPIO_PinConfig_t adc_pin = {
+        .pGPIOx = GPIOA, .GPIO_PinNumber = GPIO_PIN_NO_0,
+        .GPIO_PinMode = GPIO_MODE_ANALOG, .GPIO_PinSpeed = GPIO_SPEED_LOW,
+        .GPIO_PinOPType = GPIO_OP_TYPE_PP, .GPIO_PinPuPdControl = GPIO_NO_PUPD,
+        .GPIO_PinAltFunMode = GPIO_PIN_NO_ALTFN
+    };
+    GPIO_Init(&adc_pin);
+}
+
+
+
+
+/* -------------------------------------------------------------------------- */
 /*  Main                                                                       */
 /* -------------------------------------------------------------------------- */
 
