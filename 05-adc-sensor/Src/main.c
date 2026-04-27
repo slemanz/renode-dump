@@ -101,8 +101,22 @@ static void gpio_init(void)
     GPIO_Init(&adc_pin);
 }
 
+/* -------------------------------------------------------------------------- */
+/*  ADC1                                                                       */
+/* -------------------------------------------------------------------------- */
 
+static ADC_Config_t g_adc_cfg;
 
+static void adc1_init(void)
+{
+    g_adc_cfg.pADCx            = ADC1;
+    g_adc_cfg.ADC_Resolution   = ADC_RESOLUTION_12BIT;
+    g_adc_cfg.ADC_SampleTime   = ADC_SAMPLETIME_480;
+    g_adc_cfg.ADC_DataAlignment = ADC_ALIGN_RIGHT;
+
+    ADC_Init(&g_adc_cfg);
+    ADC_PeripheralControl(ADC1, ENABLE);
+}
 
 /* -------------------------------------------------------------------------- */
 /*  Main                                                                       */
