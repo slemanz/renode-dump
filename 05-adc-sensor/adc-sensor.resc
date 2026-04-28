@@ -1,0 +1,22 @@
+## 05-adc-sensor - STM32F411 ADC Simulation
+## Reads ADC channel 0 every 250ms. Inject values from the Renode monitor:
+##
+##   sysbus.adc1 FeedSample 0x0 2048 0
+##   sysbus.adc1 FeedSample 0x0 3500 0
+##
+
+$bin?=@Build/flash.elf
+
+mach create "STM32F411"
+machine LoadPlatformDescription @platforms/cpus/stm32f4.repl
+machine LoadPlatformDescription @stm32f411_adc.repl
+
+showAnalyzer sysbus.usart2
+logLevel -1 gpioPortB.WarningLED
+
+macro reset
+"""
+    sysbus LoadELF $bin
+"""
+
+runMacro $reset
