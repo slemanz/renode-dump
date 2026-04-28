@@ -1,0 +1,13 @@
+// STM32F411 ADC Sensor - Platform Overlay
+//
+// LED indicators:
+//   - StatusLED (PA5): heartbeat
+//   - WarningLED (PB3): overvoltage warning (ADC > threshold)
+
+StatusLED: Miscellaneous.LED @ gpioPortA
+gpioPortA:
+    5 -> StatusLED@0
+
+WarningLED: Miscellaneous.LED @ gpioPortB
+gpioPortB:
+    3 -> WarningLED@0
