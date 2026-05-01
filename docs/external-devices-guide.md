@@ -68,3 +68,71 @@ Parameters:
 After loading: `sysbus.i2c1.sensor SetValue 42`
 
 ### I2C Peripheral with Register Map
+
+Most real sensors use a register-pointer pattern: write 1 byte (register address), then read N bytes (register data).
+
+```python
+# register_sensor.py — I2C sensor with register map
+
+# Register contents (address → list of bytes)
+registers = {
+    0x00: [0x19, 0x00],   # Temperature: 25.0°C (TMP102 format)
+    0x01: [0x60, 0xA0],   # Config register
+    0xFE: [0x54, 0x49],   # Manufacturer ID
+    0xFF: [0x00, 0x68],   # Device ID
+}
+
+pointer = 0x00        # Current register pointer
+read_index = 0        # Byte index within current register
+write_buf = []        # Accumulates bytes during a write transaction
+
+def write(data):
+    """First byte = register pointer. Subsequent bytes = register write."""
+    global pointer, read_index, write_buf
+    write_buf.append(data)
+
+    if len(write_buf) == 1:
+        pointer = data
+        read_index = 0
+    else:
+        # Writing to a register
+        reg = registers.get(pointer, None)
+        if reg is not None:
+            idx = len(write_buf) - 2
+            if idx < len(reg):
+                reg[idx] = data
+
+def read():
+    """Return bytes from the currently pointed register."""
+    global read_index
+    reg = registers.get(pointer, [0x00, 0x00])
+    if read_index < len(reg):
+        byte = reg[read_index]
+        read_index += 1
+        return byte
+    return 0x00
+
+def finish():
+    """End of transaction — reset write buffer."""
+    global write_buf
+    write_buf = []
+
+def reset():
+    """Called on machine reset."""
+    global pointer, read_index, write_buf
+    pointer = 0x00
+    read_index = 0
+    write_buf = []
+    registers[0x00] = [0x19, 0x00]  # Reset temperature to 25°C
+
+# --- Custom commands ---
+
+def SetTemperature(temp_c):
+    """Set temperature in Celsius. Updates register 0x00."""
+    raw = int(float(temp_c) / 0.0625)
+    if raw > 2047: raw = 2047
+    if raw < -2048: raw = -2048
+    if raw < 0: raw = raw & 0x0FFF
+    registers[0x00] = [(raw >> 4) & 0xFF, (raw << 4) & 0xF0]
+    log("Temperature set to %.2f°C (raw=%d)" % (float(temp_c), raw))
+```
