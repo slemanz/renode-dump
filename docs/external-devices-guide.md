@@ -181,3 +181,35 @@ def finish():
     global response_queue
     response_queue = []
 ```
+
+## Python Peripheral API Reference
+
+### Callbacks
+
+| Callback | When Called | Return |
+|----------|-----------|--------|
+| `write(data)` | Master sends a byte | None |
+| `read()` | Master reads a byte | `int` (0–255) |
+| `finish()` | Transaction ends (STOP/CS deassert) | None |
+| `reset()` | Machine reset | None |
+
+### Built-in Functions
+
+| Function | Description | Example |
+|----------|-------------|---------|
+| `log(msg)` | Print to Renode log output | `log("Read: %d" % val)` |
+| `self.NoisyLog(msg)` | Verbose log (level -1) | `self.NoisyLog("byte")` |
+
+### Custom Commands
+
+Any top-level function in the Python file becomes a monitor command:
+
+```python
+def SetPressure(bar):
+    global pressure
+    pressure = float(bar)
+```
+
+Usage: `sysbus.i2c1.sensor SetPressure 150.0`
+
+Function names are case-sensitive. Parameters arrive as strings — always cast them.
