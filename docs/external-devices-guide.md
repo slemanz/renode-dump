@@ -69,7 +69,8 @@ After loading: `sysbus.i2c1.sensor SetValue 42`
 
 ### I2C Peripheral with Register Map
 
-Most real sensors use a register-pointer pattern: write 1 byte (register address), then read N bytes (register data).
+Most real sensors use a register-pointer pattern: write 1 byte (register
+address), then read N bytes (register data).
 
 ```python
 # register_sensor.py — I2C sensor with register map
@@ -135,4 +136,48 @@ def SetTemperature(temp_c):
     if raw < 0: raw = raw & 0x0FFF
     registers[0x00] = [(raw >> 4) & 0xFF, (raw << 4) & 0xF0]
     log("Temperature set to %.2f°C (raw=%d)" % (float(temp_c), raw))
+```
+
+### SPI Peripheral
+
+SPI peripherals use the same `write`/`read` callbacks but are attached to an SPI
+bus instead:
+
+```bash
+# In .resc:
+machine PyDevFromFile @my_spi_device.py 0 sysbus.spi1 "device"
+```
+
+For SPI, the second parameter (address) is the chip-select index (usually 0).
+
+```python
+# my_spi_device.py — SPI peripheral template
+
+command = 0x00
+response_queue = []
+
+def write(data):
+    """Called for each byte the master clocks out."""
+    global command, response_queue
+    if len(response_queue) == 0:
+        # First byte is usually a command/address
+        command = data
+        # Queue up response bytes for subsequent reads
+        if command == 0x01:
+            response_queue = [0xAB, 0xCD]  # status register
+        elif command == 0x02:
+            response_queue = [0x12, 0x34]  # data register
+        else:
+            response_queue = [0x00]
+
+def read():
+    """Called for each byte the master clocks in."""
+    if len(response_queue) > 0:
+        return response_queue.pop(0)
+    return 0x00
+
+def finish():
+    """CS deasserted — reset state."""
+    global response_queue
+    response_queue = []
 ```
