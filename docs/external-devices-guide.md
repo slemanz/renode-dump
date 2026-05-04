@@ -213,3 +213,47 @@ def SetPressure(bar):
 Usage: `sysbus.i2c1.sensor SetPressure 150.0`
 
 Function names are case-sensitive. Parameters arrive as strings — always cast them.
+
+## Practical Examples for ECU Development
+
+### Pressure Sensor (Ratiometric 0.5–4.5V)
+
+Many agricultural hydraulic sensors output 0.5V at 0 bar and 4.5V at 250 bar.
+This Python model simulates one connected via ADC, but you can also model the
+analog front-end as an I2C ADC:
+
+```python
+# pressure_sensor.py — I2C pressure sensor model
+
+pressure_bar = 0.0
+
+def pressure_to_raw():
+    """Convert bar to 16-bit raw value (0.5–4.5V → 0–65535)."""
+    voltage = 0.5 + (pressure_bar / 250.0) * 4.0
+    voltage = max(0.5, min(4.5, voltage))
+    raw = int((voltage / 5.0) * 65535)
+    return raw
+
+pointer = 0x00
+
+def write(data):
+    global pointer
+    pointer = data
+
+def read():
+    if pointer == 0x00:
+        raw = pressure_to_raw()
+        return (raw >> 8) & 0xFF
+    elif pointer == 0x01:
+        raw = pressure_to_raw()
+        return raw & 0xFF
+    return 0x00
+
+def finish():
+    pass
+
+def SetPressure(bar):
+    global pressure_bar
+    pressure_bar = float(bar)
+    log("Pressure set to %.1f bar" % pressure_bar)
+```
